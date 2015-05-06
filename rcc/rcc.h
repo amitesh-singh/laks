@@ -101,6 +101,21 @@ struct RCC_t {
 	volatile uint32_t APB1SMENR;
 	volatile uint32_t CCIPR;
 	volatile uint32_t CSR;
+	#elif defined(STM32L1)
+	volatile uint32_t CR;
+	volatile uint32_t ICSCR;
+	volatile uint32_t CFGR;
+	volatile uint32_t CIR;
+	volatile uint32_t AHBRSTR;
+	volatile uint32_t APB2RSTR;
+	volatile uint32_t APB1RSTR;
+	volatile uint32_t AHBENR;
+	volatile uint32_t APB2ENR;
+	volatile uint32_t APB1ENR;
+	volatile uint32_t AHBLPENR;
+	volatile uint32_t APBLP2ENR;
+	volatile uint32_t APBLP1ENR;
+	volatile uint32_t CSR;
 	#endif
 	
 	#if defined(STM32F0)
@@ -379,9 +394,60 @@ struct RCC_t {
 		GPIOD  = 1 << 3,
 		GPIOH  = 1 << 7,
 	};
+	#elif defined(STM32L1)
+	enum AHB_dev {
+		GPIOA     = 1 << 0,
+		GPIOB     = 1 << 1,
+		GPIOC     = 1 << 2,
+		GPIOD     = 1 << 3,
+		GPIOE     = 1 << 4,
+		GPIOH     = 1 << 5,
+		GPIOF     = 1 << 6,
+		GPIOG     = 1 << 7,
+		CRC	  = 1 << 12,
+		FLITF	  = 1 << 15,
+		DMA1	  = 1 << 24,
+		DMA2	  = 1 << 25,
+		AES	  = 1 << 27,
+		FSMC	  = 1 << 30,
+	};
+
+	enum APB1_dev {
+		TIM2   = 1 << 0,
+		TIM3   = 1 << 1,
+		TIM4   = 1 << 2,
+		TIM5   = 1 << 3,
+		TIM6   = 1 << 4,
+		TIM7   = 1 << 5,
+		LCD    = 1 << 9,
+		WWDG   = 1 << 11,
+		SPI2   = 1 << 14,
+		SPI3   = 1 << 15,
+		USART2 = 1 << 17,
+		USART3 = 1 << 18,
+		UART4  = 1 << 19,
+		UART5  = 1 << 20,
+		I2C1   = 1 << 21,
+		I2C2   = 1 << 22,
+		USB    = 1 << 23,
+		PWR    = 1 << 28,
+		DAC    = 1 << 29,
+		COM    = 1 << 31,
+	};
+
+	enum APB2_dev {
+		SYSCFG  = 1 << 0,
+		TIM9    = 1 << 2,
+		TIM10   = 1 << 3,
+		TIM11   = 1 << 4,
+		ADC1	= 1 << 9,
+		SDIO	= 1 << 11,
+		SPI1	= 1 << 12,
+		USART1	= 1 << 14,
+	};
 	#endif
 	
-	#if defined(STM32F0) || defined(STM32F1) || defined(STM32F3) || defined(STM32L0)
+	#if defined(STM32F0) || defined(STM32F1) || defined(STM32F3) || defined(STM32L0) || defined(STM32L1)
 	inline void enable(AHB_dev dev) {
 		AHBENR |= dev;
 	}
@@ -414,7 +480,7 @@ struct RCC_t {
 
 #if defined(STM32F0) || defined(STM32F1) || defined(STM32F3) || defined(STM32L0)
 static RCC_t& RCC = *(RCC_t*)0x40021000;
-#elif defined(STM32F4)
+#elif defined(STM32F4) || defined(STM32L1)
 static RCC_t& RCC = *(RCC_t*)0x40023800;
 #endif
 
