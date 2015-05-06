@@ -12,6 +12,8 @@ struct SYSCFG_t {
 
 #if defined(STM32F4)
 static SYSCFG_t& SYSCFG = *(SYSCFG_t*)0x40013800;
+#elif defined(STM32L1)
+static SYSCFG_t& SYSCFG = *(SYSCFG_t*)0x40010000;
 #endif
 
 void rcc_init();
