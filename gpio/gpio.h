@@ -237,6 +237,15 @@ static GPIO_t GPIOB(0x50000400);
 static GPIO_t GPIOC(0x50000800);
 static GPIO_t GPIOD(0x50000c00);
 static GPIO_t GPIOH(0x50001c00);
+#elif defined(STM32L1)
+static GPIO_t GPIOA(0x40020000);
+static GPIO_t GPIOB(0x40020400);
+static GPIO_t GPIOC(0x40020800);
+static GPIO_t GPIOD(0x40020c00);
+static GPIO_t GPIOE(0x40021000);
+static GPIO_t GPIOH(0x40021400);
+static GPIO_t GPIOF(0x40021800);
+static GPIO_t GPIOG(0x40021c00);
 #endif
 
 #endif
