@@ -13,5 +13,10 @@ void flash_init() {
 	
 	while(FLASH.ACR != 0x105);
 	
+	#elif defined(STM32L1)
+
+	// Flash latency, prefetch, 64bit
+	FLASH.ACR = 0x4;
+	FLASH.ACR |= 0x3; // Cannot be written at the same time
 	#endif
 }
