@@ -59,6 +59,19 @@ class USB_f1 : public USB_generic {
 			
 			//otg.dev_iep_reg[ep].DIEPCTL |= (1 << 21);
 		}
+
+		virtual void hw_set_nak(uint8_t ep, bool nak) {
+			uint32_t bits = (usb.reg.EPR[ep] >> 12) & 0x3;
+			if (nak) {
+				// Toggle what's necessary to get to nak
+				usb.reg.EPR[ep] = (usb.reg.EPR[ep] & 0x878f) | ((bits ^ 0x2) << 12);
+				usb_rblog.log("explicit NAK->%d: EPR=%04x", ep, usb.reg.EPR[ep]);
+			} else {
+				// Toggle what's necessary to get to valid
+				usb.reg.EPR[ep] = (usb.reg.EPR[ep] & 0x878f) | ((bits ^ 0x3) << 12);
+				usb_rblog.log("explicit cnak->%d: EPR=%04x", ep, usb.reg.EPR[ep]);
+			}
+		}
 	
 	public:
 		USB_f1(F1_USB_t& usb_periph, desc_t dev, desc_t conf) : USB_generic(dev, conf), usb(usb_periph) {}
@@ -99,6 +112,7 @@ class USB_f1 : public USB_generic {
 				
 				if(dir) {
 					// RX.
+					OutStatus outStatus = OutStatus::Ok;
 					
 					usb_rblog.log("RXBUF: ADDR: %04x, COUNT: %04x", usb.bufd[ep].ADDR_RX, usb.bufd[ep].COUNT_RX);
 					
@@ -114,13 +128,19 @@ class USB_f1 : public USB_generic {
 					} else {
 						usb_rblog.log("OUT packet received");
 						
-						handle_out(ep, len);
+						outStatus = handle_out(ep, len);
 					}
 					
 					//usb.reg.EPR[ep] = 0x9280;
 					//usb.reg.EPR[ep] &= 0x078f;
-					
-					usb.reg.EPR[ep] = (usb.reg.EPR[ep] & 0x078f) | 0x1000;
+					if (outStatus == OutStatus::NAK) {
+						usb_rblog.log("leaving ep nakked: %d", ep);
+						usb.reg.EPR[ep] = (usb.reg.EPR[ep] & 0x078f);
+					} else {
+						usb_rblog.log("clearing nak as usual: %d", ep);
+						usb.reg.EPR[ep] = (usb.reg.EPR[ep] & 0x078f) | 0x1000;
+					}
+
 				} else {
 					// TX.
 					

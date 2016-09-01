@@ -13,6 +13,7 @@ struct desc_t {
 };
 
 enum class SetupStatus {Unhandled, Ok, Stall};
+enum class OutStatus {Ok, NAK};
 enum class EPType {Control, Bulk, Interrupt, Isochronous};
 
 class USB_class_driver {
@@ -25,7 +26,9 @@ class USB_class_driver {
 		
 		virtual void handle_set_configuration(uint8_t configuration) {}
 		
-		virtual void handle_out(uint8_t ep, uint32_t len) {}
+		virtual OutStatus handle_out(uint8_t ep, uint32_t len) {
+			return OutStatus::Ok;
+		};
 };
 
 class USB_generic {
@@ -47,6 +50,7 @@ class USB_generic {
 		virtual void hw_set_address(uint8_t addr) = 0;
 		virtual void hw_conf_ep(uint8_t ep, EPType type, uint32_t size) = 0;
 		virtual void hw_set_stall(uint8_t ep) = 0;
+		virtual void hw_set_nak(uint8_t ep, bool nak) = 0;
 		
 		bool register_driver(USB_class_driver* driver) {
 			for(USB_class_driver*& d : class_drivers) {
@@ -204,12 +208,13 @@ class USB_generic {
 			hw_set_stall(0);
 		}
 		
-		void handle_out(uint8_t ep, uint32_t len) {
+		OutStatus handle_out(uint8_t ep, uint32_t len) {
 			usb_rblog.log("handle_out, ep=%02x, len=%d", ep, len);
 			
 			if(out_handlers[ep]) {
-				out_handlers[ep]->handle_out(ep, len);
+				return out_handlers[ep]->handle_out(ep, len);
 			}
+			return OutStatus::Ok;
 		}
 };
 

@@ -25,13 +25,14 @@ class USB_otg : public USB_generic {
 			uint8_t ep = status & 0xf;
 			uint32_t len = (status & 0x7ff0) >> 4;
 			uint32_t type = status & (0xf << 17);
+			OutStatus outStatus = OutStatus::Ok;
 			
 			rxfifo_ep = ep;
 			rxfifo_bytes = len;
 			
 			// OUT packet.
 			if(type == (0x2 << 17)) {
-				handle_out(ep, len);
+				outStatus = handle_out(ep, len);
 			}
 			
 			// SETUP packet.
@@ -64,8 +65,15 @@ class USB_otg : public USB_generic {
 					}
 				}
 				
-				// Clear NAK.
-				otg.dev_oep_reg[ep].DOEPCTL |= (1 << 26);
+				// Clear NAK unless requested to leave it
+				if (outStatus == OutStatus::Ok) {
+					usb_rblog.log("Cnakking: %d", ep);
+					otg.dev_oep_reg[ep].DOEPCTL |= (1 << 26); // CNAK
+				} else {
+					// _should'nt_ need to actually do this, should be already nakked...
+					usb_rblog.log("Leaving nakked: %d", ep);
+					otg.dev_oep_reg[ep].DOEPCTL |= (1 << 27); // SNAK
+				}
 			}
 			
 			rxfifo_bytes = 0;
@@ -118,6 +126,17 @@ class USB_otg : public USB_generic {
 		virtual void hw_set_stall(uint8_t ep) {
 			otg.dev_iep_reg[ep].DIEPCTL |= (1 << 21);
 		}
+
+		virtual void hw_set_nak(uint8_t ep, bool nak) {
+			if (nak) {
+				otg.dev_oep_reg[ep].DOEPCTL |= (1 << 27); // SNAK
+				usb_rblog.log("explicit NAK->%d", ep);
+			} else {
+				otg.dev_oep_reg[ep].DOEPCTL |= (1 << 26); // CNAK
+				usb_rblog.log("explicit cnak->%d", ep);
+			}
+		}
+
 	
 	public:
 		USB_otg(DWC_OTG_t& otg_periph, desc_t dev, desc_t conf) : USB_generic(dev, conf), otg(otg_periph), rxfifo_size(256) {}
