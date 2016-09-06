@@ -12,7 +12,7 @@ struct desc_t {
 	void* data;
 };
 
-enum SetupStatus {Unhandled, Ok, Stall};
+enum class SetupStatus {Unhandled, Ok, Stall};
 enum class EPType {Control, Bulk, Interrupt, Isochronous};
 
 class USB_class_driver {
